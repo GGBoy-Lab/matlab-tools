@@ -2,8 +2,8 @@
 imds = imageDatastore('Dataset', 'IncludeSubfolders', true, 'LabelSource', 'foldernames');
 
 % 将数据分为训练集、验证集和测试集
-[imdsTrain, imdsRemaining] = splitEachLabel(imds, 0.70, 'randomized');
-[imdsValidation, imdsTest] = splitEachLabel(imdsRemaining, 0.15, 'randomized');
+[imdsTrain, imdsRemaining] = splitEachLabel(imds, 0.60, 'randomized');
+[imdsValidation, imdsTest] = splitEachLabel(imdsRemaining, 0.20, 'randomized');
 
 % 打印数据集大小
 disp(['训练集大小: ', num2str(numel(imdsTrain.Labels))]);
@@ -46,10 +46,16 @@ options = trainingOptions('adam', ...
     'ValidationData', augimdsValidation, ...
     'ValidationFrequency', 3, ...
     'Verbose', false, ...
+    'Plots', 'training-progress', ... % 显示训练进度图
     'ExecutionEnvironment', 'cpu');  % 确保在CPU上进行训练
 
 % 训练网络
-netTransfer = trainNetwork(augimdsTrain, layers, options);
+[netTransfer, info] = trainNetwork(augimdsTrain, layers, options);
+
+% 打印训练精度
+% for i = 1:length(info.Epoch)
+%     disp(['第 ', num2str(info.Epoch(i)), ' 轮训练精度: ', num2str(info.TrainingAccuracy(i))]);
+% end
 
 % 对验证数据进行分类
 [YPredValidation, scoresValidation] = classify(netTransfer, augimdsValidation, 'ExecutionEnvironment', 'cpu');
